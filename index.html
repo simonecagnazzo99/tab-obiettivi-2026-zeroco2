@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tab obiettivi 2026 | zeroCO2</title>
+    <meta name="description" content="Dashboard web per monitorare gli obiettivi 2026 di zeroCO2" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="loginView" class="login-shell">
+      <div class="login-card">
+        <div class="brand-block">
+          <p class="eyebrow">Tab obiettivi</p>
+          <h1>zeroCO2</h1>
+          <p class="brand-copy">Dashboard interna aggiornata direttamente da Google Sheets.</p>
+        </div>
+        <form id="loginForm" class="login-form">
+          <label for="passwordInput">Password condivisa</label>
+          <input id="passwordInput" name="password" type="password" placeholder="Inserisci la password" autocomplete="current-password" required />
+          <button type="submit">Accedi</button>
+          <p id="loginError" class="login-error" aria-live="polite"></p>
+        </form>
+      </div>
+    </div>
+
+    <div id="dashboardView" class="dashboard-shell hidden">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Obiettivi comuni 2026</p>
+          <h1>zeroCO2</h1>
+        </div>
+        <div class="topbar-actions">
+          <button id="refreshButton" class="ghost-button" type="button">Aggiorna</button>
+          <p id="lastUpdated" class="timestamp">Ultimo aggiornamento: —</p>
+        </div>
+      </header>
+
+      <div id="statusMessage" class="status-message" role="status"></div>
+      <section id="cardsGrid" class="cards-grid" aria-label="Obiettivi"></section>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
