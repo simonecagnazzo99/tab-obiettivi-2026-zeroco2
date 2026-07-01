@@ -1,8 +1,8 @@
 window.APP_CONFIG = {
   sharedPassword: 'zeroCO2-2026',
   dataSources: {
-    obiettivi: '',
-    bu1_dettaglio: '',
+    obiettivi: 'https://docs.google.com/spreadsheets/d/1Ar0-koGHMjP6TeV1Wq9kGRhufkY6_9exbjfw_jvj6jc/gviz/tq?tqx=out:csv&sheet=obiettivi',
+    bu1_dettaglio: 'https://docs.google.com/spreadsheets/d/1Ar0-koGHMjP6TeV1Wq9kGRhufkY6_9exbjfw_jvj6jc/gviz/tq?tqx=out:csv&sheet=bu1_dettaglio',
   },
   fallbackData: {
     objectives: [

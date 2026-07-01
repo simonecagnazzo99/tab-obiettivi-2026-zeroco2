@@ -1,0 +1,7 @@
+[build]
+  publish = "."
+  command = ""
+  functions = "netlify/functions"
+
+[dev]
+  framework = "none"
