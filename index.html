@@ -16,11 +16,14 @@
   <body>
     <div id="loginView" class="login-shell">
       <div class="login-card">
-        <div class="brand-block">
-          <p class="eyebrow">Tab obiettivi</p>
-          <h1>zeroCO2</h1>
-          <p class="brand-copy">Dashboard interna aggiornata direttamente da Google Sheets.</p>
+        <div class="site-brand">
+          <span class="logo-mark">z</span>
+          <div>
+            <p class="eyebrow">Tab obiettivi</p>
+            <h1>zeroCO2</h1>
+          </div>
         </div>
+        <p class="brand-copy">Dashboard interna aggiornata direttamente da Google Sheets.</p>
         <form id="loginForm" class="login-form">
           <label for="passwordInput">Password condivisa</label>
           <input id="passwordInput" name="password" type="password" placeholder="Inserisci la password" autocomplete="current-password" required />
@@ -32,9 +35,12 @@
 
     <div id="dashboardView" class="dashboard-shell hidden">
       <header class="topbar">
-        <div>
-          <p class="eyebrow">Obiettivi comuni 2026</p>
-          <h1>zeroCO2</h1>
+        <div class="site-brand">
+          <span class="logo-mark">z</span>
+          <div>
+            <p class="eyebrow">Obiettivi comuni 2026</p>
+            <h1>zeroCO2</h1>
+          </div>
         </div>
         <div class="topbar-actions">
           <button id="refreshButton" class="ghost-button" type="button">Aggiorna</button>

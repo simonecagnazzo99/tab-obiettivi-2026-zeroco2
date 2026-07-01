@@ -109,13 +109,21 @@ function toNumber(value) {
   return Number.isNaN(parsed) ? 0 : parsed;
 }
 
+function formatToK(value) {
+  const number = Number(value);
+  const result = number / 1000;
+  if (result === 0) return '0';
+  if (Number.isInteger(result)) return result.toLocaleString('it-IT');
+  return result.toLocaleString('it-IT', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+}
+
 function formatValue(value, format, unit) {
   const number = toNumber(value);
   if (format === 'k€') {
-    return `${(number / 1000).toFixed(number >= 1000 ? 0 : 2)}k€`;
+    return `${formatToK(number)}k€`;
   }
   if (format === 'migliaia') {
-    return `${(number / 1000).toFixed(number >= 1000 ? 0 : 2)}k`;
+    return `${formatToK(number)}k`;
   }
   if (format === 'ha') {
     return `${number.toLocaleString('it-IT')} ha`;
@@ -125,6 +133,9 @@ function formatValue(value, format, unit) {
   }
   if (format === 'crediti') {
     return `${number.toLocaleString('it-IT')} crediti`;
+  }
+  if (unit === '€') {
+    return `${number.toLocaleString('it-IT')} €`;
   }
   const suffix = unit ? ` ${unit}` : '';
   return `${number.toLocaleString('it-IT')}${suffix}`.trim();
@@ -145,24 +156,25 @@ function renderCards() {
 
   objectives.forEach((objective) => {
     const order = String(objective.ordine || objective.order || '').padStart(2, '0');
-    const title = objective.titolo || objective.title || 'Obiettivo';
-    const subtitle = objective.sottotitolo || objective.subtitle || '';
     const current = toNumber(objective.valore_attuale || objective.current || 0);
     const target = toNumber(objective.valore_target || objective.target || 0);
     const unit = objective.unita || objective.unit || '';
     const format = objective.formato || objective.format || '';
-    const progress = computeProgress(current, target);
+    const detailCurrent = detailRows.reduce((acc, row) => acc + toNumber(row.attuale), 0);
+    const displayCurrent = order === '01' ? (detailCurrent || current) : current;
+    const progress = computeProgress(displayCurrent, target);
     const card = document.createElement('article');
     card.className = 'card';
+
+    const title = order === '06' ? 'Fundraising' : objective.titolo || objective.title || 'Obiettivo';
 
     let content = `
       <div class="card-number">${order}</div>
       <div class="card-head">
         <div>
           <h3>${title}</h3>
-          <p>${subtitle}</p>
         </div>
-        <div class="metric-value">${formatValue(order === '01' ? bu1Current : current, format, unit)}</div>
+        <div class="metric-value">${formatValue(displayCurrent, format, unit)}</div>
       </div>
       <div class="progress-track" aria-hidden="true">
         <div class="progress-fill" style="width:${Math.round(progress)}%"></div>
@@ -186,7 +198,7 @@ function renderCards() {
           <div class="breakdown-item">
             <div class="breakdown-line">
               <span>${row.tipologia || row.name || 'Voce'}</span>
-              <strong>${formatValue(rowValue, '€', '')}</strong>
+              <strong>${formatValue(rowValue, '', '€')}</strong>
             </div>
             <div class="breakdown-bar"><span style="width:${Math.round(rowProgress)}%"></span></div>
           </div>
@@ -197,11 +209,6 @@ function renderCards() {
 
     if (order === '03') {
       content += '<p class="secondary-metric">o 10.000 crediti prodotti</p>';
-    }
-
-    if (order === '06') {
-      const milestoneOn = current > 0;
-      content += `<div class="milestone-pill">${milestoneOn ? '● Apertura seed attiva' : '○ Apertura seed non ancora avviata'}</div>`;
     }
 
     card.innerHTML = content;
