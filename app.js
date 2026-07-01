@@ -207,10 +207,6 @@ function renderCards() {
       content += '</div>';
     }
 
-    if (order === '03') {
-      content += '<p class="secondary-metric">o 10.000 crediti prodotti</p>';
-    }
-
     card.innerHTML = content;
     elements.cardsGrid.appendChild(card);
   });
