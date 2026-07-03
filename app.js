@@ -324,29 +324,15 @@ async function fetchSheetData() {
 async function verifyPassword(password) {
   const localPassword = appConfig.sharedPassword || '';
 
-  if (localPassword && password === localPassword) {
+  if (!localPassword) {
+    throw new Error('Password not configured. Please set sharedPassword in config.js');
+  }
+
+  if (password === localPassword) {
     return true;
   }
 
-  try {
-    const response = await fetch('/.netlify/functions/verify-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password }),
-    });
-
-    if (response.ok) {
-      return true;
-    }
-
-    const payload = await response.json().catch(() => ({}));
-    throw new Error(payload.error || 'Incorrect password');
-  } catch (error) {
-    if (localPassword && password === localPassword) {
-      return true;
-    }
-    throw error;
-  }
+  throw new Error('Incorrect password');
 }
 
 async function handleLogin(event) {
