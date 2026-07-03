@@ -248,8 +248,8 @@ function renderCards() {
           <h3>${title}</h3>
         </div>
         <div class="metric-info">
+          <p class="metric-label">TARGET</p>
           <p class="metric-target">${formatValue(target, format, unit)}</p>
-          <p class="metric-value">${formatValue(displayCurrent, format, unit)}</p>
         </div>
       </div>
     `;
@@ -260,8 +260,11 @@ function renderCards() {
           <div class="progress-fill" style="width:${Math.round(progress)}%"></div>
         </div>
         <div class="progress-meta">
-          <span class="metric-subtext">YTD</span>
           <span>${Math.round(progress)}%</span>
+        </div>
+        <div class="ytd-meta">
+          <span>YTD</span>
+          <span class="ytd-value">${formatValue(displayCurrent, format, unit)}</span>
         </div>
       `;
     } else {
