@@ -324,6 +324,10 @@ async function fetchSheetData() {
 async function verifyPassword(password) {
   const localPassword = appConfig.sharedPassword || '';
 
+  if (localPassword && password === localPassword) {
+    return true;
+  }
+
   try {
     const response = await fetch('/.netlify/functions/verify-password', {
       method: 'POST',
@@ -336,11 +340,7 @@ async function verifyPassword(password) {
     }
 
     const payload = await response.json().catch(() => ({}));
-    if (localPassword && password === localPassword) {
-      return true;
-    }
-
-    throw new Error(payload.error || 'Password non corretta');
+    throw new Error(payload.error || 'Incorrect password');
   } catch (error) {
     if (localPassword && password === localPassword) {
       return true;
@@ -351,16 +351,16 @@ async function verifyPassword(password) {
 
 async function handleLogin(event) {
   event.preventDefault();
-  const password = new FormData(event.currentTarget).get('password');
+  const password = String(new FormData(event.currentTarget).get('password') || '').trim();
   elements.loginError.textContent = '';
 
   try {
-    await verifyPassword(String(password));
+    await verifyPassword(password);
     elements.loginView.classList.add('hidden');
     elements.dashboardView.classList.remove('hidden');
     await fetchSheetData();
   } catch (error) {
-    elements.loginError.textContent = error.message;
+    elements.loginError.textContent = error.message || 'Incorrect password';
   }
 }
 
