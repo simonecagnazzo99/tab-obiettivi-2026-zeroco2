@@ -4,6 +4,7 @@ window.APP_CONFIG = {
     obiettivi: 'https://docs.google.com/spreadsheets/d/1Ar0-koGHMjP6TeV1Wq9kGRhufkY6_9exbjfw_jvj6jc/gviz/tq?tqx=out:csv&sheet=obiettivi',
     bu1_dettaglio: 'https://docs.google.com/spreadsheets/d/1Ar0-koGHMjP6TeV1Wq9kGRhufkY6_9exbjfw_jvj6jc/gviz/tq?tqx=out:csv&sheet=bu1_dettaglio',
     selva_tasks: 'https://docs.google.com/spreadsheets/d/1Ar0-koGHMjP6TeV1Wq9kGRhufkY6_9exbjfw_jvj6jc/gviz/tq?tqx=out:csv&sheet=selva_tasks',
+    progress_tasks: '',
   },
   fallbackData: {
     objectives: [
@@ -87,6 +88,22 @@ window.APP_CONFIG = {
       { phase: 'SPEC', task: 'Algorithm and methodology SPEC', status: 'pending', current: 0, previous: 0 },
       { phase: 'SPEC', task: 'UX/UI SPEC', status: 'pending', current: 0, previous: 0 },
       { phase: 'SPEC', task: 'Design screens in Figma', status: 'pending', current: 0, previous: 0 },
+    ],
+    progressTasks: [
+      { phase: 'Prep', task: 'Gather NTT material into one folder', done: false },
+      { phase: 'Prep', task: 'Document current platform UX/UI', done: false },
+      { phase: 'Prep', task: 'Optimization calls on current platform', done: false },
+      { phase: 'Prep', task: 'Algorithm deep dive + retraining feasibility', done: false },
+      { phase: 'Prep', task: 'GEE commercial use assessment', done: false },
+      { phase: 'Prep', task: 'Field data collection Brazil + Italy', done: false },
+      { phase: 'Prep', task: 'Project budget', done: false },
+      { phase: 'Prep', task: 'UNIBO call', done: false },
+      { phase: 'Prep', task: 'Set up project folder + weekly meeting', done: false },
+      { phase: 'SPEC', task: 'Functional SPEC and flows', done: false },
+      { phase: 'SPEC', task: 'Platform technical SPEC', done: false },
+      { phase: 'SPEC', task: 'Algorithm and methodology SPEC', done: false },
+      { phase: 'SPEC', task: 'UX/UI SPEC', done: false },
+      { phase: 'SPEC', task: 'Design screens in Figma', done: false },
     ],
   },
 };

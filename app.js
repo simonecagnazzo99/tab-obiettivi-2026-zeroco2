@@ -4,6 +4,7 @@ const state = {
   objectives: [],
   bu1Detail: [],
   selvaTasks: [],
+  progressTasks: [],
   lastUpdated: null,
   lastMessage: '',
   lastData: null,
@@ -279,11 +280,50 @@ function renderCards() {
     }
 
     if (order === '05') {
+      const progressTasks = state.progressTasks || [];
+      const totalTasks = progressTasks.length;
+      const doneTasks = progressTasks.filter((task) => {
+        const done = String(task.done || task.Done || task.done_flag || task.fatto || '').trim().toLowerCase();
+        return done === 'true' || done === 'yes' || done === '1' || done === 'done' || done === 'x';
+      }).length;
+      const completionPercent = totalTasks ? Math.round((doneTasks / totalTasks) * 100) : 0;
+
       content += `
         <p class="task-summary">Status: ongoing</p>
-        <p class="task-summary">${selvaTotal ? `${selvaCompleted}/${selvaTotal} tasks complete` : 'No tasks available yet'}</p>
-        ${selvaDelta ? `<p class="task-summary">Weekly delta: ${selvaDelta > 0 ? '+' : ''}${selvaDelta}</p>` : ''}
+        <p class="task-summary">${doneTasks}/${totalTasks} tasks complete</p>
+        <div class="progress-track" aria-hidden="true">
+          <div class="progress-fill" style="width:${completionPercent}%"></div>
+        </div>
+        <div class="progress-meta">
+          <span>${completionPercent}%</span>
+          <span class="ytd-meta"><span>YTD</span> <span class="ytd-value">${formatValue(displayCurrent, format, unit)}</span></span>
+        </div>
       `;
+
+      content += `
+        <button class="toggle-button" type="button" data-toggle-card="05">Show detail tasks</button>
+        <div class="breakdown-list hidden" id="breakdown-05">
+      `;
+
+      progressTasks.forEach((task) => {
+        const phaseName = task.phase || task.Phase || task.phase_name || task.fase || 'Task';
+        const taskName = task.task || task.Task || task.name || task.attività || 'Item';
+        const doneValue = String(task.done || task.Done || task.done_flag || task.fatto || '').trim().toLowerCase();
+        const isDone = doneValue === 'true' || doneValue === 'yes' || doneValue === '1' || doneValue === 'done' || doneValue === 'x';
+        content += `
+          <div class="breakdown-item">
+            <div class="breakdown-line breakdown-line-small">
+              <span>${phaseName}</span>
+              <strong>${taskName}</strong>
+            </div>
+            <div class="breakdown-detail">
+              <span class="breakdown-status">${isDone ? 'Done' : 'Pending'}</span>
+            </div>
+          </div>
+        `;
+      });
+
+      content += '</div>';
     }
 
     const shouldShowWeekly = order === '01' || order === '02' || order === '03';
@@ -415,27 +455,33 @@ async function fetchSheetData() {
   }
 
   try {
-    const [objectiveResponse, detailResponse, selvaResponse] = await Promise.all([
+    const progressUrl = appConfig.dataSources?.progress_tasks || '';
+  const [objectiveResponse, detailResponse, selvaResponse, progressResponse] = await Promise.all([
       objectiveUrl ? fetch(objectiveUrl, { cache: 'no-store' }) : Promise.resolve(null),
       detailUrl ? fetch(detailUrl, { cache: 'no-store' }) : Promise.resolve(null),
       selvaUrl ? fetch(selvaUrl, { cache: 'no-store' }) : Promise.resolve(null),
+      progressUrl ? fetch(progressUrl, { cache: 'no-store' }) : Promise.resolve(null),
     ]);
 
     if (objectiveResponse && !objectiveResponse.ok) throw new Error('Unable to read objectives sheet');
     if (detailResponse && !detailResponse.ok) throw new Error('Unable to read BU1 detail sheet');
     if (selvaResponse && !selvaResponse.ok) throw new Error('Unable to read Selva tasks sheet');
+    if (progressResponse && !progressResponse.ok) throw new Error('Unable to read progress tasks sheet');
 
     const objectiveText = objectiveResponse ? await objectiveResponse.text() : '';
     const detailText = detailResponse ? await detailResponse.text() : '';
     const selvaText = selvaResponse ? await selvaResponse.text() : '';
+    const progressText = progressResponse ? await progressResponse.text() : '';
     const parsedObjectives = objectiveText ? parseSheetPayload(objectiveText).objectives : [];
     const parsedBu1Detail = detailText ? parseSheetPayload(detailText).objectives : [];
     const parsedSelvaTasks = selvaText ? parseSheetPayload(selvaText).objectives : [];
+    const parsedProgressTasks = progressText ? parseSheetPayload(progressText).objectives : [];
 
     applyData({
       objectives: parsedObjectives.length ? parsedObjectives : appConfig.fallbackData?.objectives || [],
       bu1Detail: parsedBu1Detail.length ? parsedBu1Detail : appConfig.fallbackData?.bu1Detail || [],
       selvaTasks: parsedSelvaTasks.length ? parsedSelvaTasks : appConfig.fallbackData?.selvaTasks || [],
+      progressTasks: parsedProgressTasks.length ? parsedProgressTasks : appConfig.fallbackData?.progressTasks || [],
       lastUpdated: new Date().toISOString(),
     });
     setStatus('');
