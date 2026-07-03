@@ -185,8 +185,9 @@ function renderCards() {
     const displayCurrent = order === '01' ? (detailCurrent || current) : current;
     const previousCurrent = order === '01'
       ? detailPrevious || toNumber(objective.valore_precedente || objective.previous || 0)
-      : 0;
-    const weeklyDelta = order === '01' ? displayCurrent - previousCurrent : 0;
+      : toNumber(objective.valore_precedente || objective.previous || 0);
+    const weeklyDelta = previousCurrent ? displayCurrent - previousCurrent : 0;
+    const weeklyPercent = formatChangePercent(displayCurrent, previousCurrent);
     const progress = computeProgress(displayCurrent, target);
     const card = document.createElement('article');
     card.className = 'card';
@@ -229,17 +230,20 @@ function renderCards() {
       `;
     }
 
-    if (order === '01') {
-      const weeklyPercent = formatChangePercent(displayCurrent, previousCurrent);
-      if (detailRowsFiltered.length || objective.valore_precedente || objective.previous) {
+    if (order === '01' || order === '02') {
+      const isBu1 = order === '01';
+      const changeLabel = isBu1 ? 'Weekly change' : 'Weekly change';
+      if (previousCurrent) {
         content += `
           <p class="task-summary weekly-change">
-            Weekly change: ${weeklyDelta >= 0 ? '+' : ''}${formatValue(weeklyDelta, format, unit)}
+            ${changeLabel}: ${weeklyDelta >= 0 ? '+' : ''}${formatValue(weeklyDelta, format, unit)}
             ${weeklyPercent ? `<span class="weekly-change-percent">(${weeklyPercent})</span>` : ''}
           </p>
         `;
       }
+    }
 
+    if (order === '01') {
       content += `
         <button class="toggle-button" type="button" data-toggle-card="01">Show details</button>
         <div class="breakdown-list hidden" id="breakdown-01">
