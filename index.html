@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tab obiettivi 2026 | zeroCO2</title>
-    <meta name="description" content="Dashboard web per monitorare gli obiettivi 2026 di zeroCO2" />
+    <title>zeroCO2 Goals 2026</title>
+    <meta name="description" content="Internal zeroCO2 dashboard for tracking 2026 goals." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -17,17 +17,17 @@
     <div id="loginView" class="login-shell">
       <div class="login-card">
         <div class="site-brand">
-          <img class="brand-logo" src="logo.svg" alt="zeroCO2 logo" />
+          <img class="brand-logo" src="logo.png" alt="zeroCO2 logo" />
           <div>
-            <p class="eyebrow">Tab obiettivi</p>
+            <p class="eyebrow">Goals dashboard</p>
             <h1>zeroCO2</h1>
           </div>
         </div>
-        <p class="brand-copy">Dashboard interna aggiornata direttamente da Google Sheets.</p>
+        <p class="brand-copy">Internal dashboard synchronized with Google Sheets.</p>
         <form id="loginForm" class="login-form">
-          <label for="passwordInput">Password condivisa</label>
-          <input id="passwordInput" name="password" type="password" placeholder="Inserisci la password" autocomplete="current-password" required />
-          <button type="submit">Accedi</button>
+          <label for="passwordInput">Shared password</label>
+          <input id="passwordInput" name="password" type="password" placeholder="Enter shared password" autocomplete="current-password" required />
+          <button type="submit">Log in</button>
           <p id="loginError" class="login-error" aria-live="polite"></p>
         </form>
       </div>
@@ -36,20 +36,20 @@
     <div id="dashboardView" class="dashboard-shell hidden">
       <header class="topbar">
         <div class="site-brand">
-          <span class="logo-mark">z</span>
+          <img class="brand-logo" src="logo.png" alt="zeroCO2 logo" />
           <div>
-            <p class="eyebrow">Obiettivi comuni 2026</p>
+            <p class="eyebrow">Shared goals 2026</p>
             <h1>zeroCO2</h1>
           </div>
         </div>
         <div class="topbar-actions">
-          <button id="refreshButton" class="ghost-button" type="button">Aggiorna</button>
-          <p id="lastUpdated" class="timestamp">Ultimo aggiornamento: —</p>
+          <button id="refreshButton" class="ghost-button" type="button">Refresh</button>
+          <p id="lastUpdated" class="timestamp">Last update: —</p>
         </div>
       </header>
 
       <div id="statusMessage" class="status-message" role="status"></div>
-      <section id="cardsGrid" class="cards-grid" aria-label="Obiettivi"></section>
+      <section id="cardsGrid" class="cards-grid" aria-label="Goals"></section>
     </div>
 
     <script src="config.js"></script>

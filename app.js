@@ -3,6 +3,7 @@ const appConfig = window.APP_CONFIG || {};
 const state = {
   objectives: [],
   bu1Detail: [],
+  selvaTasks: [],
   lastUpdated: null,
   lastMessage: '',
   lastData: null,
@@ -166,7 +167,18 @@ function renderCards() {
     const card = document.createElement('article');
     card.className = 'card';
 
-    const title = order === '06' ? 'Fundraising' : objective.titolo || objective.title || 'Obiettivo';
+    const title = order === '06' ? 'Fundraising' : objective.titolo || objective.title || 'Goal';
+    const taskList = state.selvaTasks || [];
+    const selvaCompleted = taskList.filter((task) => {
+      const status = String(task.status || task.Status || '').trim().toLowerCase();
+      return status === 'done' || status === 'completed' || status === 'yes' || status === '1';
+    }).length;
+    const selvaTotal = taskList.length;
+    const selvaDelta = taskList.reduce((acc, task) => {
+      const current = toNumber(task.current || task.Current || 0);
+      const previous = toNumber(task.previous || task.Previous || 0);
+      return acc + current - previous;
+    }, 0);
 
     let content = `
       <div class="card-number">${order}</div>
@@ -185,9 +197,17 @@ function renderCards() {
       </div>
     `;
 
+    if (order === '05') {
+      content += `
+        <p class="task-summary">Status: ongoing</p>
+        <p class="task-summary">${selvaTotal ? `${selvaCompleted}/${selvaTotal} tasks complete` : 'No tasks available yet'}</p>
+        ${selvaDelta ? `<p class="task-summary">Weekly delta: ${selvaDelta > 0 ? '+' : ''}${selvaDelta}</p>` : ''}
+      `;
+    }
+
     if (order === '01') {
       content += `
-        <button class="toggle-button" type="button" data-toggle-card="01">Mostra dettaglio</button>
+        <button class="toggle-button" type="button" data-toggle-card="01">Show details</button>
         <div class="breakdown-list hidden" id="breakdown-01">
       `;
       detailRows.forEach((row) => {
@@ -216,7 +236,7 @@ function renderCards() {
       const target = document.getElementById(`breakdown-${button.getAttribute('data-toggle-card')}`);
       if (target) {
         target.classList.toggle('hidden');
-        button.textContent = target.classList.contains('hidden') ? 'Mostra dettaglio' : 'Chiudi dettaglio';
+        button.textContent = target.classList.contains('hidden') ? 'Show details' : 'Hide details';
       }
     });
   });
@@ -224,14 +244,16 @@ function renderCards() {
 
 function updateTimestamp() {
   const stamp = state.lastUpdated ? new Date(state.lastUpdated).toLocaleString('it-IT') : '—';
-  elements.lastUpdated.textContent = `Ultimo aggiornamento: ${stamp}`;
+  elements.lastUpdated.textContent = `Last update: ${stamp}`;
 }
 
 function applyData(data) {
   const objectives = Array.isArray(data?.objectives) ? data.objectives : [];
   const bu1Detail = Array.isArray(data?.bu1Detail) ? data.bu1Detail : [];
+  const selvaTasks = Array.isArray(data?.selvaTasks) ? data.selvaTasks : [];
   state.objectives = objectives;
   state.bu1Detail = bu1Detail;
+  state.selvaTasks = selvaTasks;
   state.lastUpdated = data?.lastUpdated || new Date().toISOString();
   state.lastData = data;
   renderCards();
@@ -241,6 +263,7 @@ function applyData(data) {
 async function fetchSheetData() {
   const objectiveUrl = appConfig.dataSources?.obiettivi || appConfig.dataSourceUrl || '';
   const detailUrl = appConfig.dataSources?.bu1_dettaglio || '';
+  const selvaUrl = appConfig.dataSources?.selva_tasks || '';
 
   if (!objectiveUrl && !detailUrl) {
     applyData({
@@ -248,30 +271,35 @@ async function fetchSheetData() {
       bu1Detail: appConfig.fallbackData?.bu1Detail || [],
       lastUpdated: new Date().toISOString(),
     });
-    setStatus('Nessun URL del foglio configurato. Viene mostrato il contenuto di esempio.');
+    setStatus('No sheet URLs configured. Showing example data.');
     return;
   }
 
   try {
-    const [objectiveResponse, detailResponse] = await Promise.all([
+    const [objectiveResponse, detailResponse, selvaResponse] = await Promise.all([
       objectiveUrl ? fetch(objectiveUrl, { cache: 'no-store' }) : Promise.resolve(null),
       detailUrl ? fetch(detailUrl, { cache: 'no-store' }) : Promise.resolve(null),
+      selvaUrl ? fetch(selvaUrl, { cache: 'no-store' }) : Promise.resolve(null),
     ]);
 
-    if (objectiveResponse && !objectiveResponse.ok) throw new Error('Impossibile leggere il foglio obiettivi');
-    if (detailResponse && !detailResponse.ok) throw new Error('Impossibile leggere il dettaglio BU1');
+    if (objectiveResponse && !objectiveResponse.ok) throw new Error('Unable to read objectives sheet');
+    if (detailResponse && !detailResponse.ok) throw new Error('Unable to read BU1 detail sheet');
+    if (selvaResponse && !selvaResponse.ok) throw new Error('Unable to read Selva tasks sheet');
 
     const objectiveText = objectiveResponse ? await objectiveResponse.text() : '';
     const detailText = detailResponse ? await detailResponse.text() : '';
-    const parsedObjectives = parseSheetPayload(objectiveText).objectives;
+    const selvaText = selvaResponse ? await selvaResponse.text() : '';
+    const parsedObjectives = objectiveText ? parseSheetPayload(objectiveText).objectives : [];
     const parsedBu1Detail = detailText ? parseSheetPayload(detailText).objectives : [];
+    const parsedSelvaTasks = selvaText ? parseSheetPayload(selvaText).objectives : [];
 
     applyData({
       objectives: parsedObjectives.length ? parsedObjectives : appConfig.fallbackData?.objectives || [],
       bu1Detail: parsedBu1Detail.length ? parsedBu1Detail : appConfig.fallbackData?.bu1Detail || [],
+      selvaTasks: parsedSelvaTasks.length ? parsedSelvaTasks : appConfig.fallbackData?.selvaTasks || [],
       lastUpdated: new Date().toISOString(),
     });
-    setStatus('Dati caricati dal foglio Google Sheets.');
+    setStatus('');
   } catch (error) {
     const fallback = appConfig.fallbackData || { objectives: [], bu1Detail: [] };
     applyData({
@@ -279,7 +307,7 @@ async function fetchSheetData() {
       bu1Detail: fallback.bu1Detail || [],
       lastUpdated: state.lastUpdated || new Date().toISOString(),
     });
-    setStatus(`Impossibile aggiornare dal foglio. Mostro l'ultimo contenuto disponibile. ${error.message}`, true);
+    setStatus(`Unable to refresh from sheet. Showing the last available data. ${error.message}`, true);
   }
 }
 

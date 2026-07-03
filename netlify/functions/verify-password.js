@@ -35,7 +35,7 @@ exports.handler = async (event) => {
   if (!configuredPassword) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Password non configurata. Imposta SHARED_PASSWORD o config.json.' }),
+      body: JSON.stringify({ error: 'Password not configured. Set SHARED_PASSWORD or config.json.' }),
       headers: { 'Content-Type': 'application/json' },
     };
   }
@@ -50,7 +50,7 @@ exports.handler = async (event) => {
 
   return {
     statusCode: 401,
-    body: JSON.stringify({ error: 'Password non corretta' }),
+    body: JSON.stringify({ error: 'Incorrect password' }),
     headers: { 'Content-Type': 'application/json' },
   };
 };
