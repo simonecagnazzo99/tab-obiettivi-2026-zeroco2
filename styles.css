@@ -26,15 +26,14 @@ button, input {
 .hidden { display: none !important; }
 
 .page-logo {
-  position: absolute;
-  top: 24px;
-  left: 24px;
-  z-index: 1;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 22px;
 }
 
 .page-logo img {
-  width: 120px;
-  height: 120px;
+  width: 140px;
+  height: 140px;
   object-fit: contain;
   border-radius: 24px;
   background: rgba(255,255,255,0.08);
