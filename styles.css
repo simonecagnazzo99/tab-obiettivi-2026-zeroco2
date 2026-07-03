@@ -391,14 +391,22 @@ h1 { margin: 0; font-size: clamp(1.6rem, 4vw, 2.4rem); }
 
 .metric-target {
   margin: 0;
-  font-size: 0.88rem;
-  color: var(--text-dim);
+  font-size: 0.98rem;
+  color: var(--accent);
+  font-weight: 700;
 }
 
-.metric-tag {
-  font-size: 0.78rem;
-  color: var(--text-dim);
-  margin-left: 6px;
+.metric-value {
+  font-size: clamp(1.2rem, 2.6vw, 1.6rem);
+  font-weight: 700;
+  color: var(--accent);
+  white-space: nowrap;
+  margin: 0;
+}
+
+.metric-subtext {
+  color: var(--text);
+  font-size: 0.95rem;
 }
 
 .task-summary.disclaimer {
@@ -464,7 +472,7 @@ h1 { margin: 0; font-size: clamp(1.6rem, 4vw, 2.4rem); }
   display: flex;
   justify-content: space-between;
   gap: 8px;
-  color: var(--text-dim);
+  color: var(--text);
   font-size: 0.95rem;
 }
 
