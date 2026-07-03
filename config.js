@@ -4,7 +4,7 @@ window.APP_CONFIG = {
     obiettivi: 'https://docs.google.com/spreadsheets/d/1Ar0-koGHMjP6TeV1Wq9kGRhufkY6_9exbjfw_jvj6jc/gviz/tq?tqx=out:csv&sheet=obiettivi',
     bu1_dettaglio: 'https://docs.google.com/spreadsheets/d/1Ar0-koGHMjP6TeV1Wq9kGRhufkY6_9exbjfw_jvj6jc/gviz/tq?tqx=out:csv&sheet=bu1_dettaglio',
     selva_tasks: 'https://docs.google.com/spreadsheets/d/1Ar0-koGHMjP6TeV1Wq9kGRhufkY6_9exbjfw_jvj6jc/gviz/tq?tqx=out:csv&sheet=selva_tasks',
-    progress_tasks: '',
+    progress_tasks: 'https://docs.google.com/spreadsheets/d/1Ar0-koGHMjP6TeV1Wq9kGRhufkY6_9exbjfw_jvj6jc/gviz/tq?tqx=out:csv&sheet=selva_prep',
   },
   fallbackData: {
     objectives: [

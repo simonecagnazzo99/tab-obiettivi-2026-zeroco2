@@ -178,6 +178,27 @@ function getMetricValue(source, keys) {
   return '';
 }
 
+function getBooleanValue(value) {
+  const normalized = String(value).trim().toLowerCase();
+  return normalized === 'true' || normalized === 'yes' || normalized === '1' || normalized === 'done' || normalized === 'x' || normalized === '✓' || normalized === 'checked';
+}
+
+function getTaskValue(task, keys) {
+  const normalized = Object.keys(task).reduce((acc, key) => {
+    acc[key.toLowerCase().replace(/\s+/g, '_')] = task[key];
+    return acc;
+  }, {});
+
+  for (const key of keys) {
+    const normalizedKey = key.toLowerCase().replace(/\s+/g, '_');
+    if (normalized[normalizedKey] !== undefined) {
+      return normalized[normalizedKey];
+    }
+  }
+
+  return '';
+}
+
 function sumPhaseValues(tasks, phasePattern) {
   return tasks.reduce((sum, task) => {
     const phase = String(task.phase || task.Phase || task.phase_name || '').toLowerCase();
@@ -283,21 +304,29 @@ function renderCards() {
       const progressTasks = state.progressTasks || [];
       const totalTasks = progressTasks.length;
       const doneTasks = progressTasks.filter((task) => {
-        const done = String(task.done || task.Done || task.done_flag || task.fatto || '').trim().toLowerCase();
-        return done === 'true' || done === 'yes' || done === '1' || done === 'done' || done === 'x';
+        const doneValue = getTaskValue(task, ['done', 'Done', 'done_flag', 'fatto', 'completed', 'status']);
+        return getBooleanValue(doneValue);
+      }).length;
+      const previousDoneTasks = progressTasks.filter((task) => {
+        const prevValue = getTaskValue(task, ['previous_done', 'previous_done_flag', 'previous', 'previous_status', 'previous_done', 'done_precedente', 'prev_done']);
+        return getBooleanValue(prevValue);
       }).length;
       const completionPercent = totalTasks ? Math.round((doneTasks / totalTasks) * 100) : 0;
+      const previousCompletionPercent = totalTasks ? Math.round((previousDoneTasks / totalTasks) * 100) : 0;
+      const deltaTasks = doneTasks - previousDoneTasks;
 
       content += `
         <p class="task-summary">Status: ongoing</p>
         <p class="task-summary">${doneTasks}/${totalTasks} tasks complete</p>
+        <p class="task-summary">Last week: ${previousDoneTasks}/${totalTasks} complete</p>
         <div class="progress-track" aria-hidden="true">
           <div class="progress-fill" style="width:${completionPercent}%"></div>
         </div>
         <div class="progress-meta">
           <span>${completionPercent}%</span>
-          <span class="ytd-meta"><span>YTD</span> <span class="ytd-value">${formatValue(displayCurrent, format, unit)}</span></span>
+          <span class="ytd-meta"><span>Last week</span> <span class="ytd-value">${previousCompletionPercent}%</span></span>
         </div>
+        <p class="task-summary weekly-change">Week delta: ${deltaTasks >= 0 ? '+' : ''}${deltaTasks} tasks</p>
       `;
 
       content += `
@@ -306,10 +335,12 @@ function renderCards() {
       `;
 
       progressTasks.forEach((task) => {
-        const phaseName = task.phase || task.Phase || task.phase_name || task.fase || 'Task';
-        const taskName = task.task || task.Task || task.name || task.attività || 'Item';
-        const doneValue = String(task.done || task.Done || task.done_flag || task.fatto || '').trim().toLowerCase();
-        const isDone = doneValue === 'true' || doneValue === 'yes' || doneValue === '1' || doneValue === 'done' || doneValue === 'x';
+        const phaseName = getTaskValue(task, ['phase', 'Phase', 'phase_name', 'fase']) || 'Task';
+        const taskName = getTaskValue(task, ['task', 'Task', 'name', 'attività', 'description']) || 'Item';
+        const doneValue = getTaskValue(task, ['done', 'Done', 'done_flag', 'fatto', 'completed', 'status']);
+        const previousDoneValue = getTaskValue(task, ['previous_done', 'previous_done_flag', 'previous', 'previous_status', 'done_precedente', 'prev_done', 'previous_don', 'previous_done']);
+        const isDone = getBooleanValue(doneValue);
+        const wasDone = getBooleanValue(previousDoneValue);
         content += `
           <div class="breakdown-item">
             <div class="breakdown-line breakdown-line-small">
@@ -318,6 +349,7 @@ function renderCards() {
             </div>
             <div class="breakdown-detail">
               <span class="breakdown-status">${isDone ? 'Done' : 'Pending'}</span>
+              <span class="breakdown-prev">Last week: ${wasDone ? 'Done' : 'Pending'}</span>
             </div>
           </div>
         `;
@@ -430,9 +462,11 @@ function applyData(data) {
   const objectives = Array.isArray(data?.objectives) ? data.objectives : [];
   const bu1Detail = Array.isArray(data?.bu1Detail) ? data.bu1Detail : [];
   const selvaTasks = Array.isArray(data?.selvaTasks) ? data.selvaTasks : [];
+  const progressTasks = Array.isArray(data?.progressTasks) ? data.progressTasks : [];
   state.objectives = objectives;
   state.bu1Detail = bu1Detail;
   state.selvaTasks = selvaTasks;
+  state.progressTasks = progressTasks;
   state.lastUpdated = data?.lastUpdated || new Date().toISOString();
   state.lastData = data;
   renderCards();
