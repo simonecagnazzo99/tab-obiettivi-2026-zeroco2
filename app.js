@@ -247,16 +247,29 @@ function renderCards() {
         <div>
           <h3>${title}</h3>
         </div>
-        <div class="metric-value">${formatValue(displayCurrent, format, unit)}</div>
-      </div>
-      <div class="progress-track" aria-hidden="true">
-        <div class="progress-fill" style="width:${Math.round(progress)}%"></div>
-      </div>
-      <div class="progress-meta">
-        <span>${Math.round(progress)}%</span>
-        <span>Target ${formatValue(target, format, unit)}</span>
+        <div class="metric-info">
+          <p class="metric-target">${formatValue(target, format, unit)}</p>
+          <p class="metric-value">${formatValue(displayCurrent, format, unit)} <span class="metric-tag">YTD</span></p>
+        </div>
       </div>
     `;
+
+    if (order !== '04') {
+      content += `
+        <div class="progress-track" aria-hidden="true">
+          <div class="progress-fill" style="width:${Math.round(progress)}%"></div>
+        </div>
+        <div class="progress-meta">
+          <span>${Math.round(progress)}%</span>
+          <span>&nbsp;</span>
+        </div>
+      `;
+    } else {
+      content += `
+        <div class="task-summary disclaimer">Ongoing</div>
+        <div class="task-summary disclaimer">Milestone TBD</div>
+      `;
+    }
 
     if (order === '05') {
       content += `

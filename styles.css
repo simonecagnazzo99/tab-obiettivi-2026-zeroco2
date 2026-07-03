@@ -378,6 +378,37 @@ h1 { margin: 0; font-size: clamp(1.6rem, 4vw, 2.4rem); }
   gap: 12px;
   align-items: start;
   margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.metric-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  text-align: right;
+}
+
+.metric-target {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--text-dim);
+}
+
+.metric-tag {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  margin-left: 6px;
+}
+
+.task-summary.disclaimer {
+  margin-top: 10px;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  background: rgba(255,255,255,0.04);
 }
 
 .site-brand {
