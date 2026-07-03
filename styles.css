@@ -25,6 +25,23 @@ button, input {
 
 .hidden { display: none !important; }
 
+.page-logo {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  z-index: 1;
+}
+
+.page-logo img {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  border-radius: 24px;
+  background: rgba(255,255,255,0.08);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
 .login-shell,
 .dashboard-shell {
   min-height: 100vh;
@@ -37,13 +54,17 @@ button, input {
 }
 
 .login-card {
-  width: min(100%, 460px);
+  width: min(100%, 440px);
   background: rgba(255,255,255,0.06);
   border: 1px solid var(--border);
   border-radius: 24px;
-  padding: 32px;
+  padding: 36px 32px 32px;
   box-shadow: var(--shadow);
   backdrop-filter: blur(12px);
+}
+
+.login-shell {
+  position: relative;
 }
 
 .eyebrow {
