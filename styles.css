@@ -142,6 +142,41 @@ h1 { margin: 0; font-size: clamp(1.6rem, 4vw, 2.4rem); }
   font-weight: 500;
 }
 
+.task-progress-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  font-size: 0.95rem;
+  margin-top: 8px;
+}
+
+.progress-delta {
+  color: var(--accent-strong);
+  font-weight: 700;
+}
+
+.breakdown-item.status-updated {
+  background: rgba(100, 210, 150, 0.16);
+  border: 1px solid rgba(100, 210, 150, 0.35);
+}
+
+.breakdown-item.status-stalled {
+  background: rgba(238, 190, 73, 0.16);
+  border: 1px solid rgba(238, 190, 73, 0.3);
+}
+
+.breakdown-item.status-updated .breakdown-status,
+.breakdown-item.status-updated .breakdown-prev {
+  color: #a8f1c8;
+}
+
+.breakdown-item.status-stalled .breakdown-status,
+.breakdown-item.status-stalled .breakdown-prev {
+  color: #ffeaa0;
+}
+
 .breakdown-list {
   display: grid;
   gap: 10px;

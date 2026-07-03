@@ -257,7 +257,7 @@ function renderCards() {
     const card = document.createElement('article');
     card.className = 'card';
 
-    const title = order === '06' ? 'Fundraising' : order === '03' ? 'Selva Ha in Platform' : objective.titolo || objective.title || 'Goal';
+    const title = order === '06' ? 'Fundraising' : order === '03' ? 'Selva Ha in Platform' : order === '05' ? 'Selva - Develop preparation' : objective.titolo || objective.title || 'Goal';
     const taskList = state.selvaTasks || [];
     const selvaCompleted = taskList.filter((task) => {
       const status = String(task.status || task.Status || '').trim().toLowerCase();
@@ -276,14 +276,16 @@ function renderCards() {
         <div>
           <h3>${title}</h3>
         </div>
+        ${order !== '05' ? `
         <div class="metric-info">
           <p class="metric-label">TARGET</p>
           <p class="metric-target">${formatValue(target, format, unit)}</p>
         </div>
+        ` : ''}
       </div>
     `;
 
-    if (order !== '04') {
+    if (order !== '04' && order !== '05') {
       content += `
         <div class="progress-track" aria-hidden="true">
           <div class="progress-fill" style="width:${Math.round(progress)}%"></div>
@@ -293,7 +295,7 @@ function renderCards() {
           <span class="ytd-meta"><span>YTD</span> <span class="ytd-value">${formatValue(displayCurrent, format, unit)}</span></span>
         </div>
       `;
-    } else {
+    } else if (order === '04') {
       content += `
         <div class="task-summary disclaimer">Ongoing</div>
         <div class="task-summary disclaimer">Milestone TBD</div>
@@ -308,25 +310,22 @@ function renderCards() {
         return getBooleanValue(doneValue);
       }).length;
       const previousDoneTasks = progressTasks.filter((task) => {
-        const prevValue = getTaskValue(task, ['previous_done', 'previous_done_flag', 'previous', 'previous_status', 'previous_done', 'done_precedente', 'prev_done']);
+        const prevValue = getTaskValue(task, ['previous_done', 'previous_done_flag', 'previous', 'previous_status', 'done_precedente', 'prev_done', 'previous_don', 'previous_done']);
         return getBooleanValue(prevValue);
       }).length;
       const completionPercent = totalTasks ? Math.round((doneTasks / totalTasks) * 100) : 0;
-      const previousCompletionPercent = totalTasks ? Math.round((previousDoneTasks / totalTasks) * 100) : 0;
       const deltaTasks = doneTasks - previousDoneTasks;
+      const deltaLabel = `${deltaTasks >= 0 ? '+' : ''}${deltaTasks} task${Math.abs(deltaTasks) === 1 ? '' : 's'}`;
 
       content += `
         <p class="task-summary">Status: ongoing</p>
-        <p class="task-summary">${doneTasks}/${totalTasks} tasks complete</p>
-        <p class="task-summary">Last week: ${previousDoneTasks}/${totalTasks} complete</p>
         <div class="progress-track" aria-hidden="true">
           <div class="progress-fill" style="width:${completionPercent}%"></div>
         </div>
-        <div class="progress-meta">
-          <span>${completionPercent}%</span>
-          <span class="ytd-meta"><span>Last week</span> <span class="ytd-value">${previousCompletionPercent}%</span></span>
+        <div class="progress-meta task-progress-meta">
+          <span>${doneTasks}/${totalTasks} completed</span>
+          <span class="progress-delta">${deltaLabel}</span>
         </div>
-        <p class="task-summary weekly-change">Week delta: ${deltaTasks >= 0 ? '+' : ''}${deltaTasks} tasks</p>
       `;
 
       content += `
@@ -341,8 +340,9 @@ function renderCards() {
         const previousDoneValue = getTaskValue(task, ['previous_done', 'previous_done_flag', 'previous', 'previous_status', 'done_precedente', 'prev_done', 'previous_don', 'previous_done']);
         const isDone = getBooleanValue(doneValue);
         const wasDone = getBooleanValue(previousDoneValue);
+        const itemClass = isDone && !wasDone ? 'status-updated' : !isDone && !wasDone ? 'status-stalled' : '';
         content += `
-          <div class="breakdown-item">
+          <div class="breakdown-item ${itemClass}">
             <div class="breakdown-line breakdown-line-small">
               <span>${phaseName}</span>
               <strong>${taskName}</strong>
