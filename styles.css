@@ -198,12 +198,12 @@ h1 { margin: 0; font-size: clamp(1.6rem, 4vw, 2.4rem); }
 }
 
 .brand-logo {
-  width: 46px;
-  height: 46px;
+  width: 68px;
+  height: 68px;
   object-fit: contain;
-  border-radius: 16px;
+  border-radius: 18px;
   background: rgba(255,255,255,0.08);
-  padding: 8px;
+  padding: 10px;
 }
 
 .card h3 {
