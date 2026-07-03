@@ -462,42 +462,24 @@ async function fetchSheetData() {
 }
 
 async function verifyPassword(password) {
-  const expected = String(appConfig.sharedPassword || '').trim();
-  if (!password) {
-    throw new Error('Enter the shared password to continue.');
-  }
-  if (!expected) {
-    throw new Error('No password configured.');
-  }
-  if (password !== expected) {
-    throw new Error('Incorrect password.');
-  }
   return true;
 }
 
 async function handleLogin(event) {
   event.preventDefault();
-  const password = String(new FormData(event.currentTarget).get('password') || '').trim();
-  elements.loginError.textContent = '';
-  setStatus('');
-
-  try {
-    await verifyPassword(password);
-    elements.loginView.classList.add('hidden');
-    elements.dashboardView.classList.remove('hidden');
-    setStatus('Loading live sheet data...');
-    await fetchSheetData();
-  } catch (error) {
-    elements.loginError.textContent = error.message || 'Incorrect password';
-  }
+  await fetchSheetData();
 }
 
 function bootstrap() {
   elements.loginForm.addEventListener('submit', handleLogin);
   elements.refreshButton.addEventListener('click', fetchSheetData);
 
-  elements.loginView.classList.remove('hidden');
-  elements.dashboardView.classList.add('hidden');
+  elements.loginView.classList.add('hidden');
+  elements.dashboardView.classList.remove('hidden');
+  setStatus('Loading live sheet data...');
+  fetchSheetData().catch((error) => {
+    console.error('Initial sheet load failed:', error);
+  });
 }
 
 bootstrap();
