@@ -151,7 +151,11 @@ function computeProgress(current, target) {
 function renderCards() {
   const objectives = [...state.objectives].sort((a, b) => Number(a.ordine || a.order || 0) - Number(b.ordine || b.order || 0));
   const detailRows = state.bu1Detail || [];
-  const bu1Current = detailRows.reduce((acc, row) => acc + toNumber(row.attuale), 0);
+  const detailRowsFiltered = detailRows.filter((row) => {
+    const type = String(row.tipologia || row.name || row.category || '').toLowerCase();
+    return !type.includes('zerocarbon');
+  });
+  const bu1Current = detailRowsFiltered.reduce((acc, row) => acc + toNumber(row.attuale || row.current || 0), 0);
 
   elements.cardsGrid.innerHTML = '';
 
@@ -161,8 +165,13 @@ function renderCards() {
     const target = toNumber(objective.valore_target || objective.target || 0);
     const unit = objective.unita || objective.unit || '';
     const format = objective.formato || objective.format || '';
-    const detailCurrent = detailRows.reduce((acc, row) => acc + toNumber(row.attuale), 0);
+    const detailCurrent = detailRowsFiltered.reduce((acc, row) => acc + toNumber(row.attuale || row.current || 0), 0);
+    const detailPrevious = detailRowsFiltered.reduce((acc, row) => acc + toNumber(row.precedente || row.previous || 0), 0);
     const displayCurrent = order === '01' ? (detailCurrent || current) : current;
+    const previousCurrent = order === '01'
+      ? detailPrevious || toNumber(objective.valore_precedente || objective.previous || 0)
+      : 0;
+    const weeklyDelta = order === '01' ? displayCurrent - previousCurrent : 0;
     const progress = computeProgress(displayCurrent, target);
     const card = document.createElement('article');
     card.className = 'card';
@@ -210,14 +219,15 @@ function renderCards() {
         <button class="toggle-button" type="button" data-toggle-card="01">Show details</button>
         <div class="breakdown-list hidden" id="breakdown-01">
       `;
-      detailRows.forEach((row) => {
-        const rowValue = toNumber(row.attuale);
+      detailRowsFiltered.forEach((row) => {
+        const rowName = row.tipologia || row.name || row.category || 'Item';
+        const rowValue = toNumber(row.attuale || row.current || 0);
         const rowTarget = toNumber(row.target || 0);
         const rowProgress = computeProgress(rowValue, rowTarget || target);
         content += `
           <div class="breakdown-item">
             <div class="breakdown-line">
-              <span>${row.tipologia || row.name || 'Voce'}</span>
+              <span>${rowName}</span>
               <strong>${formatValue(rowValue, '', '€')}</strong>
             </div>
             <div class="breakdown-bar"><span style="width:${Math.round(rowProgress)}%"></span></div>
@@ -225,11 +235,11 @@ function renderCards() {
         `;
       });
       content += '</div>';
-    }
-
-    card.innerHTML = content;
-    elements.cardsGrid.appendChild(card);
-  });
+      if (detailRowsFiltered.length || objective.valore_precedente || objective.previous) {
+        content += `
+          <p class="task-summary">Weekly change: ${weeklyDelta >= 0 ? '+' : ''}${formatValue(weeklyDelta, format, unit)}</p>
+        `;
+      }
 
   document.querySelectorAll('[data-toggle-card]').forEach((button) => {
     button.addEventListener('click', () => {
