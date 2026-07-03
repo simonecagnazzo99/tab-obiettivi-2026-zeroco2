@@ -5,6 +5,8 @@ const state = {
   bu1Detail: [],
   selvaTasks: [],
   progressTasks: [],
+  fundraisingSummary: [],
+  fundraisingPipeline: [],
   lastUpdated: null,
   lastMessage: '',
   lastData: null,
@@ -199,6 +201,18 @@ function getTaskValue(task, keys) {
   return '';
 }
 
+function findFundraisingMetric(rows, keywords) {
+  return rows.find((row) => {
+    const metric = String(row.metric || row.metric_type || row.label || row.name || '').toLowerCase();
+    return keywords.some((keyword) => metric.includes(keyword));
+  }) || {};
+}
+
+function formatK(value) {
+  const number = toNumber(value);
+  return `${number.toLocaleString('it-IT')} k€`;
+}
+
 function sumPhaseValues(tasks, phasePattern) {
   return tasks.reduce((sum, task) => {
     const phase = String(task.phase || task.Phase || task.phase_name || '').toLowerCase();
@@ -357,6 +371,62 @@ function renderCards() {
       content += '</div>';
     }
 
+    if (order === '06') {
+      const raisingRows = state.fundraisingSummary || [];
+      const contactedRow = findFundraisingMetric(raisingRows, ['realtà contattate', 'contattate', 'contacted']);
+      const dealRow = findFundraisingMetric(raisingRows, ['trattative in corso', 'deal in progress', 'deals in progress', 'in progress']);
+      const contactedCurrent = toNumber(contactedRow.current_value || contactedRow.current || contactedRow.valore_attuale || contactedRow.attuale || contactedRow.value || contactedRow.amount || 0);
+      const contactedPrevious = toNumber(contactedRow.previous_value || contactedRow.previous || contactedRow.valore_precedente || contactedRow.precedente || contactedRow.prev || 0);
+      const dealCurrent = toNumber(dealRow.current_value || dealRow.current || dealRow.valore_attuale || dealRow.attuale || dealRow.value || dealRow.amount || 0);
+      const dealPrevious = toNumber(dealRow.previous_value || dealRow.previous || dealRow.valore_precedente || dealRow.precedente || dealRow.prev || 0);
+      const contactedDelta = contactedCurrent - contactedPrevious;
+      const dealDelta = dealCurrent - dealPrevious;
+      const contactedPercent = formatChangePercent(contactedCurrent, contactedPrevious);
+      const dealPercent = formatChangePercent(dealCurrent, dealPrevious);
+      const pipelineRows = state.fundraisingPipeline || [];
+      const totalPipelineAmount = pipelineRows.reduce((sum, row) => sum + toNumber(row.amount_k || row.amount || row.value || 0), 0);
+      const totalPipelineFormatted = formatK(totalPipelineAmount);
+
+      content += `
+        <div class="small-metrics">
+          <div class="small-metric-card">
+            <h4>Contacted</h4>
+            <p class="metric-value small-metric-value">${contactedCurrent}</p>
+            <p class="metric-detail">${contactedDelta >= 0 ? '+' : ''}${contactedDelta} vs last week ${contactedPercent}</p>
+          </div>
+          <div class="small-metric-card">
+            <h4>Deals in progress</h4>
+            <p class="metric-value small-metric-value">${dealCurrent}</p>
+            <p class="metric-detail">${dealDelta >= 0 ? '+' : ''}${dealDelta} vs last week ${dealPercent}</p>
+          </div>
+        </div>
+        <button class="toggle-button" type="button" data-toggle-card="06">Show pipeline</button>
+        <div class="breakdown-list hidden" id="breakdown-06">
+          <div class="breakdown-item">
+            <div class="breakdown-line breakdown-line-small">
+              <span>Total pipeline</span>
+              <strong>${totalPipelineFormatted}</strong>
+            </div>
+          </div>
+      `;
+
+      pipelineRows.forEach((row) => {
+        const company = getTaskValue(row, ['company', 'Company', 'cliente', 'name']) || 'Unknown';
+        const stage = getTaskValue(row, ['stage', 'Stage', 'fase', 'status']) || 'N/A';
+        const amount = toNumber(row.amount_k || row.amount || row.value || 0);
+        content += `
+          <div class="breakdown-item">
+            <div class="breakdown-line breakdown-line-small">
+              <span>${company} • ${stage}</span>
+              <strong>${formatK(amount)}</strong>
+            </div>
+          </div>
+        `;
+      });
+
+      content += '</div>';
+    }
+
     const shouldShowWeekly = order === '01' || order === '02' || order === '03';
     if (shouldShowWeekly && previousCurrent !== '' && previousCurrent !== null && previousCurrent !== undefined) {
       content += `
@@ -462,10 +532,21 @@ function applyData(data) {
   const bu1Detail = Array.isArray(data?.bu1Detail) ? data.bu1Detail : [];
   const selvaTasks = Array.isArray(data?.selvaTasks) ? data.selvaTasks : [];
   const progressTasks = Array.isArray(data?.progressTasks) ? data.progressTasks : [];
+  const fundraisingData = Array.isArray(data?.fundraisingData) ? data.fundraisingData : [];
   state.objectives = objectives;
   state.bu1Detail = bu1Detail;
   state.selvaTasks = selvaTasks;
   state.progressTasks = progressTasks;
+  state.fundraisingSummary = fundraisingData.filter((row) => {
+    const hasMetric = Boolean(row.metric || row.metric_type || row.label || row.name);
+    const companyEmpty = row.company === undefined || String(row.company).trim() === '';
+    const stageEmpty = row.stage === undefined || String(row.stage).trim() === '';
+    return hasMetric && companyEmpty && stageEmpty;
+  });
+  state.fundraisingPipeline = fundraisingData.filter((row) => {
+    const hasPipeline = Boolean(row.company || row.stage || row.amount_k || row.amount);
+    return hasPipeline;
+  });
   state.lastUpdated = data?.lastUpdated || new Date().toISOString();
   state.lastData = data;
   renderCards();
@@ -476,6 +557,7 @@ async function fetchSheetData() {
   const objectiveUrl = appConfig.dataSources?.obiettivi || appConfig.dataSourceUrl || '';
   const detailUrl = appConfig.dataSources?.bu1_dettaglio || '';
   const selvaUrl = appConfig.dataSources?.selva_tasks || '';
+  const fundraisingUrl = appConfig.dataSources?.fundraising_pipeline || '';
 
   if (!objectiveUrl && !detailUrl) {
     applyData({
@@ -489,32 +571,37 @@ async function fetchSheetData() {
 
   try {
     const progressUrl = appConfig.dataSources?.progress_tasks || '';
-  const [objectiveResponse, detailResponse, selvaResponse, progressResponse] = await Promise.all([
+  const [objectiveResponse, detailResponse, selvaResponse, progressResponse, fundraisingResponse] = await Promise.all([
       objectiveUrl ? fetch(objectiveUrl, { cache: 'no-store' }) : Promise.resolve(null),
       detailUrl ? fetch(detailUrl, { cache: 'no-store' }) : Promise.resolve(null),
       selvaUrl ? fetch(selvaUrl, { cache: 'no-store' }) : Promise.resolve(null),
       progressUrl ? fetch(progressUrl, { cache: 'no-store' }) : Promise.resolve(null),
+      fundraisingUrl ? fetch(fundraisingUrl, { cache: 'no-store' }) : Promise.resolve(null),
     ]);
 
     if (objectiveResponse && !objectiveResponse.ok) throw new Error('Unable to read objectives sheet');
     if (detailResponse && !detailResponse.ok) throw new Error('Unable to read BU1 detail sheet');
     if (selvaResponse && !selvaResponse.ok) throw new Error('Unable to read Selva tasks sheet');
     if (progressResponse && !progressResponse.ok) throw new Error('Unable to read progress tasks sheet');
+    if (fundraisingResponse && !fundraisingResponse.ok) throw new Error('Unable to read fundraising pipeline sheet');
 
     const objectiveText = objectiveResponse ? await objectiveResponse.text() : '';
     const detailText = detailResponse ? await detailResponse.text() : '';
     const selvaText = selvaResponse ? await selvaResponse.text() : '';
     const progressText = progressResponse ? await progressResponse.text() : '';
+    const fundraisingText = fundraisingResponse ? await fundraisingResponse.text() : '';
     const parsedObjectives = objectiveText ? parseSheetPayload(objectiveText).objectives : [];
     const parsedBu1Detail = detailText ? parseSheetPayload(detailText).objectives : [];
     const parsedSelvaTasks = selvaText ? parseSheetPayload(selvaText).objectives : [];
     const parsedProgressTasks = progressText ? parseSheetPayload(progressText).objectives : [];
+    const parsedFundraisingRows = fundraisingText ? parseSheetPayload(fundraisingText).objectives : [];
 
     applyData({
       objectives: parsedObjectives.length ? parsedObjectives : appConfig.fallbackData?.objectives || [],
       bu1Detail: parsedBu1Detail.length ? parsedBu1Detail : appConfig.fallbackData?.bu1Detail || [],
       selvaTasks: parsedSelvaTasks.length ? parsedSelvaTasks : appConfig.fallbackData?.selvaTasks || [],
       progressTasks: parsedProgressTasks.length ? parsedProgressTasks : appConfig.fallbackData?.progressTasks || [],
+      fundraisingData: parsedFundraisingRows,
       lastUpdated: new Date().toISOString(),
     });
     setStatus('');
