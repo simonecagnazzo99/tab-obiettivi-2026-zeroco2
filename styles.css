@@ -164,6 +164,99 @@ h1 { margin: 0; font-size: clamp(1.6rem, 4vw, 2.4rem); }
   font-size: 0.82rem;
 }
 
+.small-metrics {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 16px;
+}
+
+.small-metric-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  padding: 14px 16px;
+}
+
+.small-metric-card h4 {
+  margin: 0 0 6px;
+  font-size: 0.95rem;
+  color: var(--text-dim);
+}
+
+.small-metric-value {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--accent);
+}
+
+.metric-detail {
+  margin: 6px 0 0;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
+
+.kanban-board {
+  margin-top: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.kanban-column {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  padding: 14px;
+}
+
+.kanban-column h4 {
+  margin: 0 0 10px;
+  font-size: 1rem;
+  color: var(--text);
+}
+
+.kanban-summary {
+  margin: 0 0 12px;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.kanban-card {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+}
+
+.kanban-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.kanban-card-top strong {
+  font-size: 0.95rem;
+}
+
+.kanban-delta {
+  color: var(--accent-strong);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.kanban-card-meta {
+  margin-top: 6px;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
+
+.kanban-empty {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+
 .breakdown-delta {
   font-weight: 700;
   color: var(--accent);

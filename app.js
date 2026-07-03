@@ -149,9 +149,45 @@ function computeProgress(current, target) {
 }
 
 function formatChangePercent(current, previous) {
-  if (previous === 0) return '';
+  if (previous === 0 || previous === null || previous === undefined) return '';
   const percent = ((current - previous) / Math.abs(previous)) * 100;
   return Number.isFinite(percent) ? `${percent >= 0 ? '+' : ''}${percent.toFixed(1)}%` : '';
+}
+
+function getMetricValue(source, keys) {
+  const normalized = Object.keys(source).reduce((acc, key) => {
+    acc[key.toLowerCase().replace(/\s+/g, '_')] = source[key];
+    return acc;
+  }, {});
+
+  for (const key of keys) {
+    const normalizedKey = key.toLowerCase().replace(/\s+/g, '_');
+    if (normalized[normalizedKey] !== undefined && normalized[normalizedKey] !== '') {
+      return toNumber(normalized[normalizedKey]) || normalized[normalizedKey];
+    }
+  }
+
+  return '';
+}
+
+function sumPhaseValues(tasks, phasePattern) {
+  return tasks.reduce((sum, task) => {
+    const phase = String(task.phase || task.Phase || task.phase_name || '').toLowerCase();
+    if (phasePattern.test(phase)) {
+      return sum + toNumber(task.current || task.Current || task.attuale || 0);
+    }
+    return sum;
+  }, 0);
+}
+
+function sumPhasePreviousValues(tasks, phasePattern) {
+  return tasks.reduce((sum, task) => {
+    const phase = String(task.phase || task.Phase || task.phase_name || '').toLowerCase();
+    if (phasePattern.test(phase)) {
+      return sum + toNumber(task.previous || task.Previous || task.precedente || 0);
+    }
+    return sum;
+  }, 0);
 }
 
 function renderCards() {
@@ -230,24 +266,94 @@ function renderCards() {
       `;
     }
 
-    if (order === '01' || order === '02') {
-      const isBu1 = order === '01';
-      const changeLabel = isBu1 ? 'Weekly change' : 'Weekly change';
-      if (previousCurrent) {
-        content += `
-          <p class="task-summary weekly-change">
-            ${changeLabel}: ${weeklyDelta >= 0 ? '+' : ''}${formatValue(weeklyDelta, format, unit)}
-            ${weeklyPercent ? `<span class="weekly-change-percent">(${weeklyPercent})</span>` : ''}
-          </p>
-        `;
-      }
+    const shouldShowWeekly = order === '01' || order === '02' || order === '03';
+    if (shouldShowWeekly && (previousCurrent || order === '02' || order === '03')) {
+      content += `
+        <p class="task-summary weekly-change">
+          Weekly change: ${weeklyDelta >= 0 ? '+' : ''}${formatValue(weeklyDelta, format, unit)}
+          ${weeklyPercent ? `<span class="weekly-change-percent">(${weeklyPercent})</span>` : ''}
+        </p>
+      `;
     }
 
-    if (order === '01') {
+    if (order === '03') {
+      const feasibilityCurrent = getMetricValue(objective, ['ha_feasibility', 'ha_in_feasibility', 'feasibility_ha', 'feasibility', 'attuale_feasibility']);
+      const feasibilityPrevious = getMetricValue(objective, ['previous_feasibility', 'precedente_feasibility', 'feasibility_previous']);
+      const identifiedCurrent = getMetricValue(objective, ['ha_identified', 'ha_in_identified', 'identified_ha', 'identified', 'attuale_identified']);
+      const identifiedPrevious = getMetricValue(objective, ['previous_identified', 'precedente_identified', 'identified_previous']);
+
+      const feasibilityFromTasks = sumPhaseValues(state.selvaTasks, /feasibility|feasibility/i);
+      const feasibilityPrevFromTasks = sumPhasePreviousValues(state.selvaTasks, /feasibility|feasibility/i);
+      const identifiedFromTasks = sumPhaseValues(state.selvaTasks, /identified|identify/i);
+      const identifiedPrevFromTasks = sumPhasePreviousValues(state.selvaTasks, /identified|identify/i);
+
+      const feaCurrent = feasibilityCurrent || feasibilityFromTasks;
+      const feaPrevious = feasibilityPrevious || feasibilityPrevFromTasks;
+      const idCurrent = identifiedCurrent || identifiedFromTasks;
+      const idPrevious = identifiedPrevious || identifiedPrevFromTasks;
+      const feaDelta = feaPrevious ? feaCurrent - feaPrevious : 0;
+      const idDelta = idPrevious ? idCurrent - idPrevious : 0;
+      const feaDeltaLabel = feaPrevious ? `${feaDelta >= 0 ? '+' : ''}${formatValue(feaDelta, '', 'ha')}` : '';
+      const idDeltaLabel = idPrevious ? `${idDelta >= 0 ? '+' : ''}${formatValue(idDelta, '', 'ha')}` : '';
+
       content += `
-        <button class="toggle-button" type="button" data-toggle-card="01">Show details</button>
-        <div class="breakdown-list hidden" id="breakdown-01">
+        <div class="small-metrics">
+          <div class="small-metric-card">
+            <h4>Ha feasibility</h4>
+            <p class="metric-value small-metric-value">${formatValue(feaCurrent, '', 'ha')}</p>
+            ${feaDeltaLabel ? `<p class="metric-detail">${feaDeltaLabel} vs last week</p>` : ''}
+          </div>
+          <div class="small-metric-card">
+            <h4>Ha identified</h4>
+            <p class="metric-value small-metric-value">${formatValue(idCurrent, '', 'ha')}</p>
+            ${idDeltaLabel ? `<p class="metric-detail">${idDeltaLabel} vs last week</p>` : ''}
+          </div>
+        </div>
+        <button class="toggle-button" type="button" data-toggle-card="03">Show kanban</button>
+        <div class="kanban-board hidden" id="breakdown-03">
       `;
+
+      const phases = [
+        { key: /feasibility|feasibility/i, label: 'Feasibility' },
+        { key: /identified|identify/i, label: 'Identified' },
+        { key: /rejected|reject|rifiutati/i, label: 'Rejected' },
+      ];
+
+      phases.forEach((phase) => {
+        const phaseTasks = state.selvaTasks.filter((task) => {
+          const phaseValue = String(task.phase || task.Phase || task.phase_name || '').toLowerCase();
+          return phase.key.test(phaseValue);
+        });
+        const phaseTotal = phaseTasks.reduce((sum, task) => sum + toNumber(task.current || task.Current || task.attuale || 0), 0);
+        content += `
+          <div class="kanban-column">
+            <h4>${phase.label}</h4>
+            <p class="kanban-summary">${formatValue(phaseTotal, '', 'ha')}</p>
+        `;
+        if (phaseTasks.length) {
+          phaseTasks.forEach((task) => {
+            const taskValue = toNumber(task.current || task.Current || task.attuale || 0);
+            const prevValue = toNumber(task.previous || task.Previous || task.precedente || 0);
+            const delta = prevValue ? taskValue - prevValue : 0;
+            const deltaLabel = prevValue ? `${delta >= 0 ? '+' : ''}${formatValue(delta, '', 'ha')}` : '';
+            content += `
+              <div class="kanban-card">
+                <div class="kanban-card-top">
+                  <strong>${task.task || task.Task || task.name || 'Item'}</strong>
+                  ${deltaLabel ? `<span class="kanban-delta">${deltaLabel}</span>` : ''}
+                </div>
+                <div class="kanban-card-meta">${task.status || task.Status || ''}</div>
+              </div>
+            `;
+          });
+        } else {
+          content += `<p class="kanban-empty">No items yet</p>`;
+        }
+        content += '</div>';
+      });
+
+      content += '</div>';
+    }
 
       detailRowsFiltered.forEach((row) => {
         const rowName = row.tipologia || row.name || row.category || 'Item';
