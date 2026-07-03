@@ -166,6 +166,7 @@ h1 { margin: 0; font-size: clamp(1.6rem, 4vw, 2.4rem); }
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 16px;
+  align-items: center;
   margin-bottom: 18px;
 }
 
