@@ -167,7 +167,7 @@ h1 { margin: 0; font-size: clamp(1.6rem, 4vw, 2.4rem); }
 .small-metrics {
   display: grid;
   gap: 10px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   margin-top: 16px;
 }
 
@@ -176,6 +176,10 @@ h1 { margin: 0; font-size: clamp(1.6rem, 4vw, 2.4rem); }
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 18px;
   padding: 14px 16px;
+}
+
+.small-metric-card.rejected .small-metric-value {
+  color: #ff6b6b;
 }
 
 .small-metric-card h4 {

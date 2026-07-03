@@ -315,6 +315,7 @@ function renderCards() {
       const feasibilityPrevFromTasks = sumPhasePreviousValues(state.selvaTasks, /feasibility/i);
       const identifiedFromTasks = sumPhaseValues(state.selvaTasks, /identified|identify/i);
       const identifiedPrevFromTasks = sumPhasePreviousValues(state.selvaTasks, /identified|identify/i);
+      const rejectedCurrent = sumPhaseValues(state.selvaTasks, /rejected|reject|rifiutati/i);
 
       const feaCurrent = feasibilityCurrent !== '' ? feasibilityCurrent : feasibilityFromTasks;
       const feaPrevious = feasibilityPrevious !== '' ? feasibilityPrevious : feasibilityPrevFromTasks;
@@ -337,51 +338,12 @@ function renderCards() {
             <p class="metric-value small-metric-value">${formatValue(idCurrent, '', 'ha')}</p>
             ${idDeltaLabel ? `<p class="metric-detail">${idDeltaLabel} vs last week</p>` : ''}
           </div>
+          <div class="small-metric-card rejected">
+            <h4>Ha rejected</h4>
+            <p class="metric-value small-metric-value">${formatValue(rejectedCurrent, '', 'ha')}</p>
+          </div>
         </div>
-        <button class="toggle-button" type="button" data-toggle-card="03">Show kanban</button>
-        <div class="kanban-board hidden" id="breakdown-03">
       `;
-
-      const phases = [
-        { key: /feasibility/i, label: 'Feasibility' },
-        { key: /identified|identify/i, label: 'Identified' },
-        { key: /rejected|reject|rifiutati/i, label: 'Rejected' },
-      ];
-
-      phases.forEach((phase) => {
-        const phaseTasks = state.selvaTasks.filter((task) => {
-          const phaseValue = String(task.phase || task.Phase || task.phase_name || '').toLowerCase();
-          return phase.key.test(phaseValue);
-        });
-        const phaseTotal = phaseTasks.reduce((sum, task) => sum + toNumber(task.current || task.Current || task.attuale || 0), 0);
-        content += `
-          <div class="kanban-column">
-            <h4>${phase.label}</h4>
-            <p class="kanban-summary">${formatValue(phaseTotal, '', 'ha')}</p>
-        `;
-        if (phaseTasks.length) {
-          phaseTasks.forEach((task) => {
-            const taskValue = toNumber(task.current || task.Current || task.attuale || 0);
-            const prevValue = toNumber(task.previous || task.Previous || task.precedente || 0);
-            const delta = prevValue ? taskValue - prevValue : 0;
-            const deltaLabel = prevValue ? `${delta >= 0 ? '+' : ''}${formatValue(delta, '', 'ha')}` : '';
-            content += `
-              <div class="kanban-card">
-                <div class="kanban-card-top">
-                  <strong>${task.task || task.Task || task.name || 'Item'}</strong>
-                  ${deltaLabel ? `<span class="kanban-delta">${deltaLabel}</span>` : ''}
-                </div>
-                <div class="kanban-card-meta">${task.status || task.Status || ''}</div>
-              </div>
-            `;
-          });
-        } else {
-          content += `<p class="kanban-empty">No items yet</p>`;
-        }
-        content += '</div>';
-      });
-
-      content += '</div>';
     }
 
     card.innerHTML = content;
