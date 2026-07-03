@@ -72,7 +72,14 @@ function parseCsv(text) {
 
 function normalizeRows(rows) {
   if (!rows.length) return [];
-  const headers = rows[0].map((header) => String(header).trim().toLowerCase());
+  let headers = rows[0].map((header) => String(header).trim().toLowerCase());
+
+  const fallbackKeys = ['phase', 'task', 'status', 'current', 'previous'];
+  const hasFallbackHeaders = headers.length >= fallbackKeys.length && fallbackKeys.every((key, index) => headers[index].includes(key));
+  if (hasFallbackHeaders) {
+    headers = fallbackKeys;
+  }
+
   return rows.slice(1).filter((row) => row.some((cell) => String(cell).trim())).map((row) => {
     const entry = {};
     headers.forEach((header, index) => {
