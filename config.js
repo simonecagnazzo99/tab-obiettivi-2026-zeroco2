@@ -27,7 +27,7 @@ window.APP_CONFIG = {
       },
       {
         ordine: '03',
-        titolo: 'Platform',
+        titolo: 'Selva Ha in Platform',
         sottotitolo: 'Platform coverage',
         valore_attuale: 0,
         valore_target: 1500,

@@ -228,7 +228,7 @@ function renderCards() {
     const card = document.createElement('article');
     card.className = 'card';
 
-    const title = order === '06' ? 'Fundraising' : order === '03' ? 'Platform' : objective.titolo || objective.title || 'Goal';
+    const title = order === '06' ? 'Fundraising' : order === '03' ? 'Selva Ha in Platform' : objective.titolo || objective.title || 'Goal';
     const taskList = state.selvaTasks || [];
     const selvaCompleted = taskList.filter((task) => {
       const status = String(task.status || task.Status || '').trim().toLowerCase();
