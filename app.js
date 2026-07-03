@@ -249,6 +249,11 @@ function renderCards() {
           <p class="task-summary">Weekly change: ${weeklyDelta >= 0 ? '+' : ''}${formatValue(weeklyDelta, format, unit)}</p>
         `;
       }
+    }
+
+    card.innerHTML = content;
+    elements.cardsGrid.appendChild(card);
+  });
 
   document.querySelectorAll('[data-toggle-card]').forEach((button) => {
     button.addEventListener('click', () => {
@@ -353,13 +358,20 @@ async function handleLogin(event) {
 function bootstrap() {
   elements.loginForm.addEventListener('submit', handleLogin);
   elements.refreshButton.addEventListener('click', fetchSheetData);
+
   if (appConfig.fallbackData) {
     applyData({
       objectives: appConfig.fallbackData.objectives || [],
       bu1Detail: appConfig.fallbackData.bu1Detail || [],
+      selvaTasks: appConfig.fallbackData.selvaTasks || [],
       lastUpdated: new Date().toISOString(),
     });
   }
+
+  setStatus('Loading live sheet data...');
+  fetchSheetData().catch((error) => {
+    console.error('Initial sheet load failed:', error);
+  });
 }
 
 bootstrap();
