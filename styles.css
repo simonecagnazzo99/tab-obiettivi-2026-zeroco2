@@ -157,6 +157,11 @@ h1 { margin: 0; font-size: clamp(1.6rem, 4vw, 2.4rem); }
   font-weight: 700;
 }
 
+.progress-week {
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
 .breakdown-item.status-updated {
   background: rgba(100, 210, 150, 0.16);
   border: 1px solid rgba(100, 210, 150, 0.35);

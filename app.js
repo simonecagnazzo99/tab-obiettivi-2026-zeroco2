@@ -318,13 +318,12 @@ function renderCards() {
       const deltaLabel = `${deltaTasks >= 0 ? '+' : ''}${deltaTasks} task${Math.abs(deltaTasks) === 1 ? '' : 's'}`;
 
       content += `
-        <p class="task-summary">Status: ongoing</p>
         <div class="progress-track" aria-hidden="true">
           <div class="progress-fill" style="width:${completionPercent}%"></div>
         </div>
         <div class="progress-meta task-progress-meta">
-          <span>${doneTasks}/${totalTasks} completed</span>
-          <span class="progress-delta">${deltaLabel}</span>
+          <span>${doneTasks}/${totalTasks} completed <span class="progress-delta">${deltaLabel} this week</span></span>
+          <span class="progress-week">${completionPercent}% total</span>
         </div>
       `;
 
