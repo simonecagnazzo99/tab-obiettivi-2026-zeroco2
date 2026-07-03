@@ -224,10 +224,17 @@ function renderCards() {
     }
 
     if (order === '01') {
+      if (detailRowsFiltered.length || objective.valore_precedente || objective.previous) {
+        content += `
+          <p class="task-summary weekly-change">Weekly change: ${weeklyDelta >= 0 ? '+' : ''}${formatValue(weeklyDelta, format, unit)}</p>
+        `;
+      }
+
       content += `
         <button class="toggle-button" type="button" data-toggle-card="01">Show details</button>
         <div class="breakdown-list hidden" id="breakdown-01">
       `;
+
       detailRowsFiltered.forEach((row) => {
         const rowName = row.tipologia || row.name || row.category || 'Item';
         const rowValue = toNumber(row.attuale || row.current || 0);
@@ -235,7 +242,7 @@ function renderCards() {
         const rowProgress = computeProgress(rowValue, rowTarget || target);
         content += `
           <div class="breakdown-item">
-            <div class="breakdown-line">
+            <div class="breakdown-line breakdown-line-small">
               <span>${rowName}</span>
               <strong>${formatValue(rowValue, '', '€')}</strong>
             </div>
@@ -244,11 +251,6 @@ function renderCards() {
         `;
       });
       content += '</div>';
-      if (detailRowsFiltered.length || objective.valore_precedente || objective.previous) {
-        content += `
-          <p class="task-summary">Weekly change: ${weeklyDelta >= 0 ? '+' : ''}${formatValue(weeklyDelta, format, unit)}</p>
-        `;
-      }
     }
 
     card.innerHTML = content;
