@@ -159,6 +159,15 @@ function renderCards() {
 
   elements.cardsGrid.innerHTML = '';
 
+  if (!objectives.length) {
+    elements.cardsGrid.innerHTML = `
+      <div class="card">
+        <p class="task-summary">No objective data loaded. Check Google Sheet format or config.js.</p>
+      </div>
+    `;
+    return;
+  }
+
   objectives.forEach((objective) => {
     const order = String(objective.ordine || objective.order || '').padStart(2, '0');
     const current = toNumber(objective.valore_attuale || objective.current || 0);
