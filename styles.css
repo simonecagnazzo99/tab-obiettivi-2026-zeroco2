@@ -136,6 +136,12 @@ h1 { margin: 0; font-size: clamp(1.6rem, 4vw, 2.4rem); }
   margin-bottom: 10px;
 }
 
+.weekly-change-percent {
+  margin-left: 8px;
+  color: #c2f0d2;
+  font-weight: 500;
+}
+
 .breakdown-list {
   display: grid;
   gap: 10px;
@@ -148,6 +154,23 @@ h1 { margin: 0; font-size: clamp(1.6rem, 4vw, 2.4rem); }
   padding: 10px 12px;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.04);
+}
+
+.breakdown-detail {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: #d0f2d4;
+  font-size: 0.82rem;
+}
+
+.breakdown-delta {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.breakdown-prev {
+  color: var(--text-dim);
 }
 
 .breakdown-line-small {

@@ -148,6 +148,12 @@ function computeProgress(current, target) {
   return Number.isFinite(progress) ? progress : 0;
 }
 
+function formatChangePercent(current, previous) {
+  if (previous === 0) return '';
+  const percent = ((current - previous) / Math.abs(previous)) * 100;
+  return Number.isFinite(percent) ? `${percent >= 0 ? '+' : ''}${percent.toFixed(1)}%` : '';
+}
+
 function renderCards() {
   const objectives = [...state.objectives].sort((a, b) => Number(a.ordine || a.order || 0) - Number(b.ordine || b.order || 0));
   const detailRows = state.bu1Detail || [];
@@ -224,9 +230,13 @@ function renderCards() {
     }
 
     if (order === '01') {
+      const weeklyPercent = formatChangePercent(displayCurrent, previousCurrent);
       if (detailRowsFiltered.length || objective.valore_precedente || objective.previous) {
         content += `
-          <p class="task-summary weekly-change">Weekly change: ${weeklyDelta >= 0 ? '+' : ''}${formatValue(weeklyDelta, format, unit)}</p>
+          <p class="task-summary weekly-change">
+            Weekly change: ${weeklyDelta >= 0 ? '+' : ''}${formatValue(weeklyDelta, format, unit)}
+            ${weeklyPercent ? `<span class="weekly-change-percent">(${weeklyPercent})</span>` : ''}
+          </p>
         `;
       }
 
@@ -238,15 +248,19 @@ function renderCards() {
       detailRowsFiltered.forEach((row) => {
         const rowName = row.tipologia || row.name || row.category || 'Item';
         const rowValue = toNumber(row.attuale || row.current || 0);
-        const rowTarget = toNumber(row.target || 0);
-        const rowProgress = computeProgress(rowValue, rowTarget || target);
+        const previousValue = toNumber(row.precedente || row.previous || 0);
+        const delta = rowValue - previousValue;
+        const deltaLabel = `${delta >= 0 ? '+' : ''}${formatValue(delta, '', '€')}`;
         content += `
           <div class="breakdown-item">
             <div class="breakdown-line breakdown-line-small">
               <span>${rowName}</span>
               <strong>${formatValue(rowValue, '', '€')}</strong>
             </div>
-            <div class="breakdown-bar"><span style="width:${Math.round(rowProgress)}%"></span></div>
+            <div class="breakdown-detail">
+              <span class="breakdown-delta">${deltaLabel}</span>
+              <span class="breakdown-prev">last week ${formatValue(previousValue, '', '€')}</span>
+            </div>
           </div>
         `;
       });
