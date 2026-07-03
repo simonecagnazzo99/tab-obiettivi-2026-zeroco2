@@ -267,7 +267,7 @@ function renderCards() {
     }
 
     const shouldShowWeekly = order === '01' || order === '02' || order === '03';
-    if (shouldShowWeekly && (previousCurrent || order === '02' || order === '03')) {
+    if (shouldShowWeekly && previousCurrent !== '' && previousCurrent !== null && previousCurrent !== undefined) {
       content += `
         <p class="task-summary weekly-change">
           Weekly change: ${weeklyDelta >= 0 ? '+' : ''}${formatValue(weeklyDelta, format, unit)}
@@ -276,21 +276,50 @@ function renderCards() {
       `;
     }
 
+    if (order === '01') {
+      content += `
+        <button class="toggle-button" type="button" data-toggle-card="01">Show details</button>
+        <div class="breakdown-list hidden" id="breakdown-01">
+      `;
+
+      detailRowsFiltered.forEach((row) => {
+        const rowName = row.tipologia || row.name || row.category || 'Item';
+        const rowValue = toNumber(row.attuale || row.current || 0);
+        const previousValue = toNumber(row.precedente || row.previous || 0);
+        const delta = rowValue - previousValue;
+        const deltaLabel = `${delta >= 0 ? '+' : ''}${formatValue(delta, '', '€')}`;
+        content += `
+          <div class="breakdown-item">
+            <div class="breakdown-line breakdown-line-small">
+              <span>${rowName}</span>
+              <strong>${formatValue(rowValue, '', '€')}</strong>
+            </div>
+            <div class="breakdown-detail">
+              <span class="breakdown-delta">${deltaLabel}</span>
+              <span class="breakdown-prev">last week ${formatValue(previousValue, '', '€')}</span>
+            </div>
+          </div>
+        `;
+      });
+
+      content += '</div>';
+    }
+
     if (order === '03') {
       const feasibilityCurrent = getMetricValue(objective, ['ha_feasibility', 'ha_in_feasibility', 'feasibility_ha', 'feasibility', 'attuale_feasibility']);
       const feasibilityPrevious = getMetricValue(objective, ['previous_feasibility', 'precedente_feasibility', 'feasibility_previous']);
       const identifiedCurrent = getMetricValue(objective, ['ha_identified', 'ha_in_identified', 'identified_ha', 'identified', 'attuale_identified']);
       const identifiedPrevious = getMetricValue(objective, ['previous_identified', 'precedente_identified', 'identified_previous']);
 
-      const feasibilityFromTasks = sumPhaseValues(state.selvaTasks, /feasibility|feasibility/i);
-      const feasibilityPrevFromTasks = sumPhasePreviousValues(state.selvaTasks, /feasibility|feasibility/i);
+      const feasibilityFromTasks = sumPhaseValues(state.selvaTasks, /feasibility/i);
+      const feasibilityPrevFromTasks = sumPhasePreviousValues(state.selvaTasks, /feasibility/i);
       const identifiedFromTasks = sumPhaseValues(state.selvaTasks, /identified|identify/i);
       const identifiedPrevFromTasks = sumPhasePreviousValues(state.selvaTasks, /identified|identify/i);
 
-      const feaCurrent = feasibilityCurrent || feasibilityFromTasks;
-      const feaPrevious = feasibilityPrevious || feasibilityPrevFromTasks;
-      const idCurrent = identifiedCurrent || identifiedFromTasks;
-      const idPrevious = identifiedPrevious || identifiedPrevFromTasks;
+      const feaCurrent = feasibilityCurrent !== '' ? feasibilityCurrent : feasibilityFromTasks;
+      const feaPrevious = feasibilityPrevious !== '' ? feasibilityPrevious : feasibilityPrevFromTasks;
+      const idCurrent = identifiedCurrent !== '' ? identifiedCurrent : identifiedFromTasks;
+      const idPrevious = identifiedPrevious !== '' ? identifiedPrevious : identifiedPrevFromTasks;
       const feaDelta = feaPrevious ? feaCurrent - feaPrevious : 0;
       const idDelta = idPrevious ? idCurrent - idPrevious : 0;
       const feaDeltaLabel = feaPrevious ? `${feaDelta >= 0 ? '+' : ''}${formatValue(feaDelta, '', 'ha')}` : '';
@@ -314,7 +343,7 @@ function renderCards() {
       `;
 
       const phases = [
-        { key: /feasibility|feasibility/i, label: 'Feasibility' },
+        { key: /feasibility/i, label: 'Feasibility' },
         { key: /identified|identify/i, label: 'Identified' },
         { key: /rejected|reject|rifiutati/i, label: 'Rejected' },
       ];
@@ -352,28 +381,6 @@ function renderCards() {
         content += '</div>';
       });
 
-      content += '</div>';
-    }
-
-      detailRowsFiltered.forEach((row) => {
-        const rowName = row.tipologia || row.name || row.category || 'Item';
-        const rowValue = toNumber(row.attuale || row.current || 0);
-        const previousValue = toNumber(row.precedente || row.previous || 0);
-        const delta = rowValue - previousValue;
-        const deltaLabel = `${delta >= 0 ? '+' : ''}${formatValue(delta, '', '€')}`;
-        content += `
-          <div class="breakdown-item">
-            <div class="breakdown-line breakdown-line-small">
-              <span>${rowName}</span>
-              <strong>${formatValue(rowValue, '', '€')}</strong>
-            </div>
-            <div class="breakdown-detail">
-              <span class="breakdown-delta">${deltaLabel}</span>
-              <span class="breakdown-prev">last week ${formatValue(previousValue, '', '€')}</span>
-            </div>
-          </div>
-        `;
-      });
       content += '</div>';
     }
 
