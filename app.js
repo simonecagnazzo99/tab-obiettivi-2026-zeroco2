@@ -261,10 +261,7 @@ function renderCards() {
         </div>
         <div class="progress-meta">
           <span>${Math.round(progress)}%</span>
-        </div>
-        <div class="ytd-meta">
-          <span>YTD</span>
-          <span class="ytd-value">${formatValue(displayCurrent, format, unit)}</span>
+          <span class="ytd-meta"><span>YTD</span> <span class="ytd-value">${formatValue(displayCurrent, format, unit)}</span></span>
         </div>
       `;
     } else {
